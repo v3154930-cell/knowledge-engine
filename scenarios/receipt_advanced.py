@@ -27,26 +27,28 @@ class ReceiptAdvancedScenario:
     
     def get_next_question(self) -> Optional[str]:
         if self.state == Step.START:
-            return "Введите ФИО получателя (того, кто берет деньги):"
+            return None
         elif self.state == Step.ASK_RECEIVER_FIO:
-            return "Введите паспортные данные получателя (серия, номер, кем и когда выдан):"
+            return "Введите ФИО получателя (того, кто берет деньги):"
         elif self.state == Step.ASK_PASSPORT:
-            return "Введите ФИО передающего (того, кто дает деньги):"
+            return "Введите паспортные данные получателя (серия, номер, кем и когда выдан):"
         elif self.state == Step.ASK_SENDER_FIO:
-            return "Введите сумму в рублях (только цифры):"
+            return "Введите ФИО передающего (того, кто дает деньги):"
         elif self.state == Step.ASK_AMOUNT:
-            return "Введите срок возврата (например: 25.12.2026):"
+            return "Введите сумму в рублях (только цифры):"
         elif self.state == Step.ASK_RETURN_DATE:
-            return "Введите дату составления расписки (ДД.ММ.ГГГГ):"
+            return "Введите срок возврата (например: 25.12.2026):"
         elif self.state == Step.ASK_DATE:
-            return "Введите город составления расписки:"
+            return "Введите дату составления расписки (ДД.ММ.ГГГГ):"
         elif self.state == Step.ASK_CITY:
-            return "Укажите процентную ставку (например: 10% годовых) или введите 'пропустить':"
+            return "Введите город составления расписки:"
         elif self.state == Step.ASK_INTEREST_RATE:
-            return "Укажите период начисления процентов (например: 'со дня получения до дня возврата') или 'пропустить':"
+            return "Укажите процентную ставку (например: 10% годовых) или введите 'пропустить':"
         elif self.state == Step.ASK_INTEREST_PERIOD:
-            return "Укажите штраф/пени за просрочку (например: 0,1% от суммы за каждый день) или 'пропустить':"
+            return "Укажите период начисления процентов (например: 'со дня получения до дня возврата') или 'пропустить':"
         elif self.state == Step.ASK_PENALTY:
+            return "Укажите штраф/пени за просрочку (например: 0,1% от суммы за каждый день) или 'пропустить':"
+        elif self.state == Step.ASK_REPAYMENT_ORDER:
             return "Укажите порядок возврата (например: 'наличными', 'переводом на карту') или 'пропустить':"
         return None
     
@@ -59,10 +61,12 @@ class ReceiptAdvancedScenario:
         
         answer = answer.strip()
         
+        # START - инициализация сценария
         if self.state == Step.START:
             self.state = Step.ASK_RECEIVER_FIO
             return self.get_next_question()
         
+        # Основные шаги
         if self.state == Step.ASK_RECEIVER_FIO:
             if not answer:
                 return "ФИО не может быть пустым. Введите ФИО получателя:"
@@ -116,6 +120,7 @@ class ReceiptAdvancedScenario:
             self.state = Step.ASK_INTEREST_RATE
             return self.get_next_question()
         
+        # Опциональные шаги
         if self.state == Step.ASK_INTEREST_RATE:
             if not self.is_skip(answer):
                 self.data['interest_rate'] = answer
