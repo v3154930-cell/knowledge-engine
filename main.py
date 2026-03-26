@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from scenarios.receipt_simple import ReceiptSimpleScenario
 from scenarios.receipt_advanced import ReceiptAdvancedScenario
+from scenarios.loan import LoanScenario
 
 app = FastAPI()
 
@@ -23,6 +24,8 @@ def get_or_create_scenario(session_id: str, scenario_type: str = "receipt_simple
     if session_id not in sessions:
         if scenario_type == "receipt_advanced":
             sessions[session_id] = ReceiptAdvancedScenario()
+        elif scenario_type == "loan":
+            sessions[session_id] = LoanScenario()
         else:
             sessions[session_id] = ReceiptSimpleScenario()
     return sessions[session_id]
@@ -34,7 +37,8 @@ def handle_scenario(request: ScenarioRequest, scenario_type: str):
     # Выбираем шаблон в зависимости от типа сценария
     template_map = {
         "receipt_simple": "templates/receipt_simple.txt",
-        "receipt_advanced": "templates/receipt_advanced.txt"
+        "receipt_advanced": "templates/receipt_advanced.txt",
+        "loan": "templates/loan.txt"
     }
     template_path = template_map.get(scenario_type, "templates/receipt_simple.txt")
     
@@ -42,8 +46,17 @@ def handle_scenario(request: ScenarioRequest, scenario_type: str):
     if request.answer and request.answer != "":
         result = scenario.process_answer(request.answer)
         
-        # Если вернулась ошибка
-        if result and ("не может быть" in result or "Пожалуйста" in result or "Введите" in result):
+        # Если вернулась ошибка (проверяем по специфичным фразам в начале строки)
+        error_prefixes = ("не может быть", "Пожалуйста, введите")
+        if result and result.startswith(error_prefixes):
+            return AgentResponse(
+                question=result,
+                session_id=request.session_id,
+                current_step=scenario.get_current_step()
+            )
+        
+        # Если есть result (следующий вопрос) - возвращаем его напрямую
+        if result:
             return AgentResponse(
                 question=result,
                 session_id=request.session_id,
@@ -60,7 +73,7 @@ def handle_scenario(request: ScenarioRequest, scenario_type: str):
                 current_step="done"
             )
         
-        # Получаем следующий вопрос
+        # Fallback - получаем следующий вопрос
         next_question = scenario.get_next_question()
         return AgentResponse(
             question=next_question,
@@ -69,8 +82,9 @@ def handle_scenario(request: ScenarioRequest, scenario_type: str):
         )
     
     # Первый вызов без ответа - инициализируем сценарий
-    # Не вызываем process_answer(""), чтобы получить вопрос для START
-    # get_next_question() для START уже возвращает правильный первый вопрос
+    # Вызываем process_answer("") для перехода из START в первый вопрос
+    if scenario.get_current_step() == "start":
+        scenario.process_answer("")
     
     # Получаем первый вопрос
     question = scenario.get_next_question()
