@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 class Step(str, Enum):
@@ -11,8 +11,18 @@ class Step(str, Enum):
     ASK_PASSPORT = "ask_passport"
     ASK_DATE = "ask_date"
     ASK_REASON = "ask_reason"
-    CALCULATE_PENALTY = "calculate_penalty"
+    ASK_EVIDENCE = "ask_evidence"
     DONE = "done"
+
+EVIDENCE_CHOICES = [
+    "Чек / квитанция об оплате",
+    "Скриншоты переписки с продавцом",
+    "Фотографии товара (брак, упаковка)",
+    "Видеофиксация (распаковка, работа товара)",
+    "Скриншот заказа с маркетплейса",
+    "Трек-номер отправления",
+    "Другое (укажу в тексте)"
+]
 
 class ClaimMarketplaceBuyerScenario:
     def __init__(self):
@@ -40,6 +50,9 @@ class ClaimMarketplaceBuyerScenario:
             return "Введите дату, когда должен был быть доставлен товар (ДД.ММ.ГГГГ):"
         elif self.state == Step.ASK_DATE:
             return "Выберите причину претензии: нарушение срока доставки, отмена заказа, некачественный товар, не тот товар, другое"
+        elif self.state == Step.ASK_EVIDENCE:
+            choices_text = "\n".join([f"{i+1}. {choice}" for i, choice in enumerate(EVIDENCE_CHOICES)])
+            return f"Какие доказательства вы прикладываете к претензии? (можно выбрать несколько, например: 1,3,5 или 1 3 5)\nВведите номера через запятую или пробел, либо 'пропустить' для продолжения без приложений:\n\n{choices_text}"
         return None
     
     def process_answer(self, answer: str) -> Optional[str]:
@@ -132,6 +145,24 @@ class ClaimMarketplaceBuyerScenario:
                 self.data['reason'] = answer
                 self.data['penalty'] = '0'
             
+            self.state = Step.ASK_EVIDENCE
+            return self.get_next_question()
+        
+        elif self.state == Step.ASK_EVIDENCE:
+            if answer.lower() in ['пропустить', 'skip', '']:
+                self.data['evidence'] = []
+            else:
+                selected = []
+                nums = answer.replace(',', ' ').split()
+                for num in nums:
+                    try:
+                        idx = int(num) - 1
+                        if 0 <= idx < len(EVIDENCE_CHOICES):
+                            selected.append(EVIDENCE_CHOICES[idx])
+                    except ValueError:
+                        pass
+                self.data['evidence'] = selected
+            
             from datetime import datetime
             self.data['current_date'] = datetime.now().strftime("%d.%m.%Y")
             self.ready_to_generate = True
@@ -197,6 +228,14 @@ class ClaimMarketplaceBuyerScenario:
 
 1. Вернуть уплаченные деньги в размере {self.data.get('amount', '')} руб.
 2. Заменить товар на качественный или вернуть деньги
+
+"""
+        
+        evidence = self.data.get('evidence', [])
+        if evidence:
+            evidence_list = "\n".join([f"  - {e}" for e in evidence])
+            document += f"""Приложение:
+{evidence_list}
 
 """
         
