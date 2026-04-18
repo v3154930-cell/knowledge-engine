@@ -248,6 +248,7 @@
         }
 
         .step-info {
+            display: none;
             font-size: 12px;
             color: var(--text-gray);
             margin-top: 10px;
@@ -360,7 +361,7 @@
         // Настройки API (можно переопределить через window.API_URL)
         const API_BASE = (window.API_URL || window.location.origin) + '/api/scenario';
         const API_SESSION = (window.API_URL || window.location.origin) + '/api/session';
-        const DEBUG = true;   // при проде установить false
+        const DEBUG = false;   // при проде установить false
 
         let currentSessionId = null;
         let currentScenarioType = null;
