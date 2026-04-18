@@ -66,6 +66,8 @@ def get_or_create_scenario(session_id: str = None, scenario_type: str = "receipt
     key = _make_key(session_id, scenario_type)
     
     if key not in sessions:
+        if scenario_type not in SCENARIO_CLASSES:
+            return None, session_id
         scenario_class = SCENARIO_CLASSES.get(scenario_type, ReceiptSimpleScenario)
         sessions[key] = scenario_class()
     
@@ -85,9 +87,12 @@ async def handle_scenario(scenario_type: str, request: Request):
     session_id = data.get("session_id")
     answer = data.get("answer", "")
     
-    template_path = TEMPLATE_MAP.get(scenario_type, "templates/receipt_simple.txt")
-    
     scenario, session_id = get_or_create_scenario(session_id, scenario_type)
+    
+    if scenario is None:
+        raise HTTPException(status_code=501, detail="Сценарий в разработке")
+    
+    template_path = TEMPLATE_MAP.get(scenario_type, "templates/receipt_simple.txt")
     
     # Логика: если answer пустой — начать сценарий, иначе — продолжить
     if not answer:
