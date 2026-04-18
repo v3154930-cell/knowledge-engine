@@ -6,6 +6,11 @@ import uuid
 from scenarios.receipt_simple import ReceiptSimpleScenario
 from scenarios.receipt_advanced import ReceiptAdvancedScenario
 from scenarios.loan import LoanScenario
+from scenarios.claim_marketplace_buyer import ClaimMarketplaceBuyerScenario
+from scenarios.claim_universal import ClaimUniversalScenario
+from scenarios.complaint_rospotrebnadzor import ComplaintRospotrebnadzorScenario
+from scenarios.complaint_prosecutor import ComplaintProsecutorScenario
+from scenarios.claim_bank_block import ClaimBankBlockScenario
 
 app = FastAPI()
 
@@ -47,9 +52,18 @@ def get_or_create_scenario(session_id: str = None, scenario_type: str = "receipt
             sessions[key] = ReceiptAdvancedScenario()
         elif scenario_type == "loan":
             sessions[key] = LoanScenario()
+        elif scenario_type == "claim_marketplace_buyer":
+            sessions[key] = ClaimMarketplaceBuyerScenario()
+        elif scenario_type == "claim_universal":
+            sessions[key] = ClaimUniversalScenario()
+        elif scenario_type == "complaint_rospotrebnadzor":
+            sessions[key] = ComplaintRospotrebnadzorScenario()
+        elif scenario_type == "complaint_prosecutor":
+            sessions[key] = ComplaintProsecutorScenario()
+        elif scenario_type == "claim_bank_block":
+            sessions[key] = ClaimBankBlockScenario()
         elif scenario_type == "claim_simple":
-            # Заглушка для claim_simple
-            sessions[key] = None  # None означает "не реализовано"
+            sessions[key] = None
         else:
             sessions[key] = ReceiptSimpleScenario()
     
@@ -72,7 +86,12 @@ def handle_scenario(request: ScenarioRequest, scenario_type: str):
     template_map = {
         "receipt_simple": "templates/receipt_simple.txt",
         "receipt_advanced": "templates/receipt_advanced.txt",
-        "loan": "templates/loan.txt"
+        "loan": "templates/loan.txt",
+        "claim_marketplace_buyer": "templates/claim_marketplace_buyer.txt",
+        "claim_universal": "templates/claim_universal.txt",
+        "complaint_rospotrebnadzor": "templates/complaint_rospotrebnadzor.txt",
+        "complaint_prosecutor": "templates/complaint_prosecutor.txt",
+        "claim_bank_block": "templates/claim_bank_block.txt"
     }
     
     # Получаем или создаём сценарий
