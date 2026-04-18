@@ -12,6 +12,7 @@ from scenarios.claim_universal import ClaimUniversalScenario
 from scenarios.complaint_rospotrebnadzor import ComplaintRospotrebnadzorScenario
 from scenarios.complaint_prosecutor import ComplaintProsecutorScenario
 from scenarios.claim_bank_block import ClaimBankBlockScenario
+from scenarios.complaint_seller import ComplaintSellerScenario
 
 app = FastAPI()
 
@@ -41,6 +42,7 @@ SCENARIO_CLASSES = {
     "complaint_rospotrebnadzor": ComplaintRospotrebnadzorScenario,
     "complaint_prosecutor": ComplaintProsecutorScenario,
     "claim_bank_block": ClaimBankBlockScenario,
+    "complaint_seller": ComplaintSellerScenario,
 }
 
 TEMPLATE_MAP = {
@@ -52,6 +54,7 @@ TEMPLATE_MAP = {
     "complaint_rospotrebnadzor": "templates/complaint_rospotrebnadzor.txt",
     "complaint_prosecutor": "templates/complaint_prosecutor.txt",
     "claim_bank_block": "templates/claim_bank_block.txt",
+    "complaint_seller": "templates/complaint_seller.txt",
 }
 
 
